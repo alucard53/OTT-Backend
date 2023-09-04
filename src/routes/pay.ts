@@ -3,6 +3,7 @@
 import { Router } from "express"
 import { Stripe } from "stripe"
 import { configDotenv } from "dotenv"
+import users from "../models/users"
 
 configDotenv()
 
@@ -49,11 +50,21 @@ if (process.env.STRIPE_PK) {
 
 router.post("/", async (req, res) => {
     //Read plan index, billing index, and stripe customer id from request body
-    const { plan, billing, customer } = req.body
+    const { plan, billing, email } = req.body
 
     //TODO: instead of storing Stripe customer ID on frontend(security risks), above API call will receive email. Change the frontend fetch request to send the email in place of the customer Stripe ID.
     //Then we will query the DB with the email and get the stripe ID directly into the backend.
+    const user = await users.findOne({email});
+    
+    let customer: string = "";
 
+    if(user){
+        if(user.stripeID){
+            customer= user.stripeID;
+        }
+    }else{
+        res.writeHead(404);
+    }
     //create a new subscription in stripe
     const subscription = (await stripe.subscriptions.create({
         customer,

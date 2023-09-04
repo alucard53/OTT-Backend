@@ -5,6 +5,7 @@ import cors from "cors"
 import mongoose from "mongoose"
 
 import register from "./routes/register"
+import login from "./routes/login";
 import pay from "./routes/pay"
 import store from "./routes/store"
 
@@ -23,6 +24,7 @@ async function main() {
 
     //assign register route to handler
     app.use("/register", register)
+    app.use("/login", login)
     app.use("/pay", pay)
     app.use("/store", store)
 
