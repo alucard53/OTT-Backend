@@ -1,6 +1,6 @@
 //New User Registration route
 
-import { Router } from "express";
+import { Router } from "express"
 import { Stripe } from "stripe"
 import { configDotenv } from "dotenv"
 

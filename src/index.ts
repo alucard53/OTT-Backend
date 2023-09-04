@@ -5,6 +5,8 @@ import cors from "cors"
 import mongoose from "mongoose"
 
 import register from "./routes/register"
+import pay from "./routes/pay"
+import store from "./routes/store"
 
 configDotenv()
 
@@ -21,6 +23,8 @@ async function main() {
 
     //assign register route to handler
     app.use("/register", register)
+    app.use("/pay", pay)
+    app.use("/store", store)
 
     app.listen(6969, () => { console.log("App started in http://localhost:6969") })
 }
