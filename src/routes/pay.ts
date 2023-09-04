@@ -54,56 +54,56 @@ router.post("/", async (req, res) => {
 
     //TODO: instead of storing Stripe customer ID on frontend(security risks), above API call will receive email. Change the frontend fetch request to send the email in place of the customer Stripe ID.
     //Then we will query the DB with the email and get the stripe ID directly into the backend.
-    const user = await users.findOne({email});
-    
+    const user = await users.findOne({ email });
+
     let customer: string = "";
 
-    if(user){
-        if(user.stripeID){
-            customer= user.stripeID;
-        }
-    }else{
+    if (!user) {
         res.writeHead(404);
-    }
-    //create a new subscription in stripe
-    const subscription = (await stripe.subscriptions.create({
-        customer,
-        items: [{ price: price_links[plan][billing] }],
-        collection_method: "send_invoice",
-        days_until_due: 30
-    }))
+    } else {
+        if (user.stripeID) {
+            customer = user.stripeID;
+        }
+        console.log(customer)
+        //create a new subscription in stripe
+        const subscription = (await stripe.subscriptions.create({
+            customer,
+            items: [{ price: price_links[plan][billing] }],
+            collection_method: "send_invoice",
+            days_until_due: 30
+        }))
 
-    if (!subscription) {
-        res.writeHead(500)
-    }
-    else {
-
-        //Invoice can be an invoice object | string | undefined, so convert to string
-        const inv_id = subscription.latest_invoice?.toString()
-
-        if (!inv_id) {
+        if (!subscription) {
             res.writeHead(500)
-        } else {
+        }
+        else {
 
-            //Finalize invoice to get payment intent
-            const invoice = (await stripe.invoices.finalizeInvoice(inv_id)).payment_intent?.toString()
+            //Invoice can be an invoice object | string | undefined, so convert to string
+            const inv_id = subscription.latest_invoice?.toString()
 
-            if (!invoice) {
+            if (!inv_id) {
                 res.writeHead(500)
             } else {
-                //retrieve payment intent object to get client secret
-                const paymentIntent = stripe.paymentIntents.retrieve(invoice)
 
-                if (!paymentIntent) {
+                //Finalize invoice to get payment intent
+                const invoice = (await stripe.invoices.finalizeInvoice(inv_id)).payment_intent?.toString()
+
+                if (!invoice) {
                     res.writeHead(500)
                 } else {
+                    //retrieve payment intent object to get client secret
+                    const paymentIntent = stripe.paymentIntents.retrieve(invoice)
 
-                    res.setHeader("Content-Type", "application/json")
+                    if (!paymentIntent) {
+                        res.writeHead(500)
+                    } else {
+                        res.setHeader("Content-Type", "application/json")
 
-                    //send client secret to frontend
-                    res.write(JSON.stringify({
-                        secret: (await paymentIntent).client_secret, sub_id: subscription.id
-                    }))
+                        //send client secret to frontend
+                        res.write(JSON.stringify({
+                            secret: (await paymentIntent).client_secret, sub_id: subscription.id
+                        }))
+                    }
                 }
             }
         }
