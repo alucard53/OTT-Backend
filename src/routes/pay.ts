@@ -51,6 +51,8 @@ router.post("/", async (req, res) => {
     //Read plan index, billing index, and stripe customer id from request body
     const { plan, billing, customer } = req.body
 
+    //TODO: instead of storing Stripe customer ID on frontend(security risks), above API call will receive email. Then we will query the DB with the email and get the stripe ID directly into the backend.
+
     //create a new subscription in stripe
     const subscription = (await stripe.subscriptions.create({
         customer,
