@@ -13,9 +13,16 @@ configDotenv()
 
 async function main() {
 
-    if (process.env.MONGO_URI) {
-        await mongoose.connect(process.env.MONGO_URI)
-        console.log("Connected to DB")
+    try {
+        if (process.env.MONGO_URI) {
+            await mongoose.connect(process.env.MONGO_URI)
+            console.log("Connected to DB")
+        } else {
+            console.log("Failed to connect")
+            process.exit(1)
+        }
+    } catch (e) {
+        console.log(e)
     }
 
     const app = express()
