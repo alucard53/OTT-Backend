@@ -27,38 +27,38 @@ router.post("/", async (req, res) => {
     const { name, email, password } = req.body
 
     if (await users.findOne({ email })) { //check if email already exists
-        res.writeHead(400)
-    } else {
-
-        //create stripe customer
-        const customer = await stripe.customers.create({
-            description: "",
-            name,
-            email,
-        })
-
-        //error from stripe in creating customer
-        if (!customer) {
-            res.writeHead(500)
-        } else {
-            //add to db and handle error
-            if (!await users.create({
-                name,
-                email,
-                password,
-                plan: 0,
-                stripeID: customer.id,
-                substate: "None",
-                billing: 0,
-                startDate: Date.now(),
-            })) {
-                res.writeHead(500)
-            } else {
-                res.writeHead(200)
-            }
-        }
+        res.status(400).end()
+        return
     }
-    res.end()
+
+    //create stripe customer
+    const customer = await stripe.customers.create({
+        description: "",
+        name,
+        email,
+    })
+
+    //error from stripe in creating customer
+    if (!customer) {
+        res.status(500).end()
+        return
+    }
+
+    //add to db and handle error
+    if (!await users.create({
+        name,
+        email,
+        password,
+        plan: 0,
+        stripeID: customer.id,
+        substate: "None",
+        billing: 0,
+        startDate: Date.now(),
+    })) {
+        res.status(500).end()
+    } else {
+        res.status(200).end()
+    }
 
 })
 

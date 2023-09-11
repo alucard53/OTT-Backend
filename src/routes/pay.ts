@@ -12,22 +12,22 @@ const price_links = [
     [
         //mobile
         "price_1NdU8qSA6MDXluwIwVIWjxM0", //monthly
-        "price_1NdWZBSA6MDXluwIv8SwwlJp", //yearly
+        "price_1Np1nNSA6MDXluwIpk01MOI1", //yearly
     ],
     [
         //basic
         "price_1NdUAMSA6MDXluwIUGNT6Ycy", //monthly
-        "price_1NdWYgSA6MDXluwIfqduqnum", //yearly
+        "price_1Np1mOSA6MDXluwIKUJ4L9gD", //yearly
     ],
     [
         //standard
         "price_1NdUB5SA6MDXluwIonElPyLD", //monthly
-        "price_1NdWWjSA6MDXluwIobzubQa0", //yearly
+        "price_1Np1ktSA6MDXluwIQISitszx", //yearly
     ],
     [
         //premium
-        "price_1NdUBrSA6MDXluwIT00vFJzX", //monthly
-        "price_1NdWWISA6MDXluwIhiBvxcm4", //yearly
+        "price_1Np1iZSA6MDXluwIZ2XT7xgv", //monthly
+        "price_1Np1izSA6MDXluwIi1PoWxWf", //yearly
     ],
 ];
 
@@ -59,56 +59,54 @@ router.post("/", async (req, res) => {
     let customer: string = "";
 
     if (!user) {
-        res.writeHead(404);
-    } else {
-        if (user.stripeID) {
-            customer = user.stripeID;
-        }
-        console.log(customer)
-        //create a new subscription in stripe
-        const subscription = (await stripe.subscriptions.create({
-            customer,
-            items: [{ price: price_links[plan][billing] }],
-            collection_method: "send_invoice",
-            days_until_due: 30
-        }))
-
-        if (!subscription) {
-            res.writeHead(500)
-        }
-        else {
-
-            //Invoice can be an invoice object | string | undefined, so convert to string
-            const inv_id = subscription.latest_invoice?.toString()
-
-            if (!inv_id) {
-                res.writeHead(500)
-            } else {
-
-                //Finalize invoice to get payment intent
-                const invoice = (await stripe.invoices.finalizeInvoice(inv_id)).payment_intent?.toString()
-
-                if (!invoice) {
-                    res.writeHead(500)
-                } else {
-                    //retrieve payment intent object to get client secret
-                    const paymentIntent = stripe.paymentIntents.retrieve(invoice)
-
-                    if (!paymentIntent) {
-                        res.writeHead(500)
-                    } else {
-                        res.setHeader("Content-Type", "application/json")
-
-                        //send client secret to frontend
-                        res.write(JSON.stringify({
-                            secret: (await paymentIntent).client_secret, sub_id: subscription.id
-                        }))
-                    }
-                }
-            }
-        }
+        res.status(404).end();
+        return
     }
-    res.end()
+
+    if (user.stripeID) {
+        customer = user.stripeID;
+
+    }
+
+    //create a new subscription in stripe
+    const subscription = (await stripe.subscriptions.create({
+        customer,
+        items: [{ price: price_links[plan][billing] }],
+        collection_method: "send_invoice",
+        days_until_due: 30
+    }))
+
+    if (!subscription) {
+        res.status(500).end()
+        return
+    }
+    //Invoice can be an invoice object | string | undefined, so convert to string
+    const inv_id = subscription.latest_invoice?.toString()
+
+    if (!inv_id) {
+        res.status(500).end()
+        return
+    }
+
+    //Finalize invoice to get payment intent
+    const invoice = (await stripe.invoices.finalizeInvoice(inv_id)).payment_intent?.toString()
+
+    if (!invoice) {
+        res.status(500).end()
+        return
+    }
+    //retrieve payment intent object to get client secret
+    const paymentIntent = stripe.paymentIntents.retrieve(invoice)
+
+    if (!paymentIntent) {
+        res.status(500).end()
+        return
+    }
+
+    //send client secret to frontend
+    res.status(200).json({
+        secret: (await paymentIntent).client_secret, sub_id: subscription.id
+    })
 })
 
 export default router

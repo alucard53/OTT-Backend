@@ -3,19 +3,18 @@ import movies from "../models/movies";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
-  //   const title = req.body;
+router.get("/", async (_, res) => {
 
-  let movie = await movies.find();
-  console.log(movie);
+    let mvs = await movies.find();
 
-  if (!movie) {
-    res.write(404);
-    console.log("Movie not found!");
-  } else {
-    res.write(JSON.stringify(movie));
-  }
-  res.end();
+    if (!mvs) {
+        res.status(500).end();
+        console.log("Error in getting data from database");
+    } else {
+        res.status(200).json(mvs);
+    }
+
+    res.end();
 });
 
 export default router;

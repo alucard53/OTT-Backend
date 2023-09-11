@@ -15,28 +15,28 @@ router.post("/", async (req, res) => {
 
     if (!users) {
         //Error should never occur, recheck frontend if it does
-        res.writeHead(404)
+        res.status(404).end()
+        return
+    }
+
+    //update user's plan details
+    const update = await users.updateOne(
+        { email },
+        {
+            //properties of user document to be updated, other properties will remain unchanged
+            $set: {
+                plan,
+                substate: "Active",
+                billing,
+                startDate: Date.now(),
+            },
+        })
+
+    //If update was unsuccessful
+    if (!update.acknowledged) {
+        res.status(500)
     } else {
-
-        //update user's plan details
-        const update = await users.updateOne(
-            { email },
-            {
-                //properties of user document to be updated, other properties will remain unchanged
-                $set: {
-                    plan,
-                    substate: "Active",
-                    billing,
-                    startDate: Date.now(),
-                },
-            })
-
-        //If update was unsuccessful
-        if (!update.acknowledged) {
-            res.writeHead(500)
-        } else {
-            res.writeHead(200)
-        }
+        res.status(200)
     }
     res.end()
 })

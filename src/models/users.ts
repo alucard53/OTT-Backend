@@ -20,4 +20,4 @@ const schema = new mongoose.Schema({
     startDate: Date,
 });
 
-export default mongoose.model("Users", schema, "Users");
+export default mongoose.model("Users", schema, "Users")
