@@ -5,16 +5,16 @@ const router = Router();
 
 router.get("/", async (_, res) => {
 
-    let mvs = await movies.find();
+  let mvs = await movies.find();
 
-    if (!mvs) {
-        res.status(500).end();
-        console.log("Error in getting data from database");
-    } else {
-        res.status(200).json(mvs);
-    }
+  if (!mvs) {
+    res.status(500).end();
+    console.log("Error in getting data from database");
+  } else {
+    res.status(200).json(mvs);
+  }
 
-    res.end();
+  res.end();
 });
 
 export default router;
