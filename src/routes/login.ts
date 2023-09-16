@@ -25,16 +25,17 @@ router.post("/", async (req, res) => {
       return
     }
 
-    const secret = base64url.decode(process.env.JWT_KEY)
-    const token = await new EncryptJWT(
+    const secret = base64url.decode(process.env.JWT_KEY) // getting encrypted key from .env file and decrypting
+
+    const token = await new EncryptJWT( //creating new jwt and encrypting it
       {
-        email: user.email,
-        stripeID: user.stripeID,
+        email: user.email, //payload
+        stripeID: user.stripeID, //payload
       })
-      .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" })
+      .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" }) //encryption algo to be used
       .setIssuedAt()
       .setExpirationTime("24h")
-      .encrypt(secret)
+      .encrypt(secret) //encrypting with secrety key
 
     console.log(token)
 
@@ -45,7 +46,7 @@ router.post("/", async (req, res) => {
         name: user.name,
         plan: user.plan,
         substate: user.substate,
-        token
+        token //sending token on successful login
       }
     )
   } else { //Incorrect password
