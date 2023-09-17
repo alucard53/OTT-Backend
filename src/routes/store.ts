@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
   //Search for user in DB
   const user = await users.findOne({ email })
 
-  if (!users) {
+  if (!user) {
     //Error should never occur, recheck frontend if it does
     res.status(404).end()
     return
