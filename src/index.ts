@@ -9,6 +9,7 @@ import login from "./routes/login";
 import pay from "./routes/pay";
 import store from "./routes/store";
 import movies from "./routes/moviesData";
+import checkSub from "./routes/checkSub";
 
 configDotenv();
 
@@ -35,6 +36,7 @@ async function main() {
   app.use("/pay", pay);
   app.use("/store", store);
   app.use("/movies", movies);
+  app.use("/checkSub", checkSub);
   app.listen(6969, () => {
     console.log("App started in http://localhost:6969");
   });
