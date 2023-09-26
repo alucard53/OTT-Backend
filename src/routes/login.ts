@@ -35,7 +35,6 @@ router.post("/", async (req, res) => {
       .setExpirationTime("24h")
       .encrypt(secret); //encrypting with secrety key
 
-    console.log("token created");
 
     res.status(200).json({
       billing: user.billing,

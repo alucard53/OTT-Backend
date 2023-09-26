@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { base64url, jwtDecrypt } from "jose";
+import { configDotenv } from "dotenv";
+
+configDotenv()
 
 import users from "../models/users";
 
@@ -8,15 +11,14 @@ const router = Router();
 let secret: Uint8Array = new Uint8Array();
 
 router.get("/", async (req, res) => {
-  //isko alag s import karna parega
+
   if (process.env.JWT_KEY) {
     secret = base64url.decode(process.env.JWT_KEY);
   }
   const bearer = req.headers.authorization;
-  console.log("bearer", bearer);
 
   if (!bearer) {
-    res.status(401);
+    res.status(401).end();
     console.log("not authenticated");
     return;
   }
@@ -37,15 +39,18 @@ router.get("/", async (req, res) => {
     const user = await users.findOne({ email });
     if (user !== null) {
       if (user.substate === "Active") {
-        res.status(200);
+        res.status(200).end();
       } else {
-        res.status(400);
+        res.status(400).end();
       }
+    } else {
+      console.log("user not found")
+      res.status(404).end();
     }
-    return;
   } catch (e) {
-    res.status(401);
+    console.log(e)
     console.log("bad token");
+    res.status(401).end();
     return;
   }
 });
