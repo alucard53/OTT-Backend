@@ -72,31 +72,38 @@ router.post("/", async (req, res) => {
     const subscription = (await stripe.subscriptions.create({
         customer,
         items: [{ price: price_links[plan][billing] }],
-        collection_method: "send_invoice",
-        days_until_due: 30
+        collection_method: "charge_automatically",
+        payment_behavior: "default_incomplete"
     }))
 
     if (!subscription) {
         res.status(500).end()
         return
     }
-    //Invoice can be an invoice object | string | undefined, so convert to string
-    const inv_id = subscription.latest_invoice?.toString()
 
-    if (!inv_id) {
+    //Invoice can be an invoice object | string | undefined, so convert to string
+    const invoice = subscription.latest_invoice?.toString()
+
+    if (!invoice) {
         res.status(500).end()
         return
     }
 
-    //Finalize invoice to get payment intent
-    const invoice = (await stripe.invoices.finalizeInvoice(inv_id)).payment_intent?.toString()
+    console.log(invoice)
 
     if (!invoice) {
         res.status(500).end()
         return
     }
     //retrieve payment intent object to get client secret
-    const paymentIntent = stripe.paymentIntents.retrieve(invoice)
+    const paymentIntentId = (await stripe.invoices.retrieve(invoice)).payment_intent
+
+    if (!paymentIntentId) {
+        res.status(500).end()
+        return
+    }
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId.toString())
 
     if (!paymentIntent) {
         res.status(500).end()
@@ -105,8 +112,17 @@ router.post("/", async (req, res) => {
 
     //send client secret to frontend
     res.status(200).json({
-        secret: (await paymentIntent).client_secret, sub_id: subscription.id
+        secret: paymentIntent.client_secret, sub_id: subscription.id
     })
+
+    const update = await users.updateOne(
+        { email },
+        {
+            $set: {
+                subID: subscription.id
+            }
+        }
+    )
 })
 
 export default router

@@ -1,17 +1,24 @@
 import { Router } from "express";
 import { base64url, jwtDecrypt } from "jose";
 import { configDotenv } from "dotenv";
-
-configDotenv()
+import { Stripe } from "stripe";
 
 import users from "../models/users";
 
+configDotenv()
 const router = Router();
+
+let stripe: Stripe;
+
+if (process.env.STRIPE_PK) {
+  stripe = new Stripe(process.env.STRIPE_PK, {
+    apiVersion: "2023-08-16",
+  })
+}
 
 let secret: Uint8Array = new Uint8Array();
 
 router.get("/", async (req, res) => {
-
   if (process.env.JWT_KEY) {
     secret = base64url.decode(process.env.JWT_KEY);
   }
@@ -37,6 +44,13 @@ router.get("/", async (req, res) => {
     const email = data.payload.email;
 
     const user = await users.findOne({ email });
+
+    console.log(user)
+
+    if (user?.subID) {
+      console.log(await stripe.subscriptions.retrieve(user.subID))
+    }
+
     if (user !== null) {
       if (user.substate === "Active") {
         res.status(200).end();

@@ -37,12 +37,16 @@ router.post("/", async (req, res) => {
     return;
   }
 
+  console.log("Waiting to create stripe customer")
+
   //create stripe customer
   const customer = await stripe.customers.create({
     description: "",
     name,
     email,
   });
+
+  console.log("Done creating stripe customer")
 
   //error from stripe in creating customer
   if (!customer) {
