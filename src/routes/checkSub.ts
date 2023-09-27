@@ -5,7 +5,7 @@ import { Stripe } from "stripe";
 
 import users from "../models/users";
 
-configDotenv()
+configDotenv();
 const router = Router();
 
 let stripe: Stripe;
@@ -13,7 +13,7 @@ let stripe: Stripe;
 if (process.env.STRIPE_PK) {
   stripe = new Stripe(process.env.STRIPE_PK, {
     apiVersion: "2023-08-16",
-  })
+  });
 }
 
 let secret: Uint8Array = new Uint8Array();
@@ -46,11 +46,11 @@ router.get("/", async (req, res) => {
 
     const user = await users.findOne({ email });
 
-    console.log(user)
+    console.log(user);
 
-    if (user?.subID) {
-      console.log(await stripe.subscriptions.retrieve(user.subID))
-    }
+    // if (user?.subID) {
+    //   console.log(await stripe.subscriptions.retrieve(user.subID))
+    // }
 
     if (user !== null) {
       if (user.substate === "Active") {
@@ -59,11 +59,11 @@ router.get("/", async (req, res) => {
         res.status(400).end();
       }
     } else {
-      console.log("user not found")
+      console.log("user not found");
       res.status(404).end();
     }
   } catch (e) {
-    console.log(e)
+    console.log(e);
     console.log("bad token");
     res.status(401).end();
     return;
