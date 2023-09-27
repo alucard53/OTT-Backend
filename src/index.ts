@@ -10,6 +10,11 @@ import pay from "./routes/pay";
 import store from "./routes/store";
 import movies from "./routes/moviesData";
 import checkSub from "./routes/checkSub";
+import addWatch from "./routes/addWatch";
+import checkWatch from "./routes/checkWatch";
+
+import users from "./models/users";
+import watchlater from "./models/watchlater";
 
 configDotenv();
 
@@ -37,9 +42,13 @@ async function main() {
   app.use("/store", store);
   app.use("/movies", movies);
   app.use("/checkSub", checkSub);
+  app.use("/addWatch", addWatch)
+  app.use("/checkWatch", checkWatch)
+
   app.listen(6969, () => {
     console.log("App started in http://localhost:6969");
   });
+
 }
 
 main();

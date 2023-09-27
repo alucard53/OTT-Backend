@@ -5,6 +5,7 @@ import { Stripe } from "stripe";
 import { configDotenv } from "dotenv";
 
 import users from "../models/users";
+import watchlater from "../models/watchlater";
 
 //Intialize config to access variables from .env file
 
@@ -53,6 +54,11 @@ router.post("/", async (req, res) => {
     res.status(500).end();
     return;
   }
+
+  await watchlater.create({
+    email,
+    movies: [],
+  })
 
   //add to db and handle error
   if (

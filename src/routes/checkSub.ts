@@ -41,6 +41,7 @@ router.get("/", async (req, res) => {
   try {
     const data = await jwtDecrypt(token, secret);
     console.log(data);
+    //TODO validateJwt
     const email = data.payload.email;
 
     const user = await users.findOne({ email });

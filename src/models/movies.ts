@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const schema = new mongoose.Schema(
+const schema = new Schema(
   {
-    id: Number,
+    id: String,
     title: String,
     year: Number,
     genre: String,
@@ -14,4 +14,4 @@ const schema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("Movies", schema, "Movies");
+export default model("Movies", schema, "Movies");

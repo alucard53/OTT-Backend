@@ -5,15 +5,17 @@ dotenv.configDotenv()
 
 //run file individually i.e. to see working node test.js
 async function func() {
-  
+
   //jwt secret is stored in .env file in encrypted form, decrypting it
-  const secret = jose.base64url.decode(process.env.JWT_SECRET)
+  const secret = jose.base64url.decode(process.env.JWT_KEY)
 
   console.log(secret)
 
   //creating jwt
-  const jwt = await new jose.EncryptJWT({email: "chidori9912@gmail.com"}) //payload inside token
-    .setProtectedHeader({alg: "dir", enc: "A128CBC-HS256"}) //algorithm to encrypt token
+  const jwt = await new jose.EncryptJWT({ email: "chidori9912@gmail.com" }) //payload inside token
+    .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" }) //algorithm to encrypt token
+    .setIssuer('urn:example:issuer')
+    .setAudience('urn:example:audience')
     .setIssuedAt()
     .setExpirationTime("24h")
     .encrypt(secret) //key to encrypt token
@@ -21,7 +23,18 @@ async function func() {
   console.log("encrypted token to be sent to client", jwt)
 
   //decrypting jwt
-  console.log("decrypted token after receiving from client", await jwtDecrypt(jwt, secret))
+  const payload = await jose.jwtDecrypt(jwt, secret)
+  console.log("decrypted token after receiving from client", payload)
+
+
+  const data = await fetch("http://localhost:6969/checkWatch?movie=2", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${jwt}`
+    }
+  })
+
+  console.log(data.status)
 }
 
 func()

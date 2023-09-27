@@ -68,13 +68,18 @@ router.post("/", async (req, res) => {
 
     }
 
+    let subscription: Stripe.Response<Stripe.Subscription>
     //create a new subscription in stripe
-    const subscription = (await stripe.subscriptions.create({
-        customer,
-        items: [{ price: price_links[plan][billing] }],
-        collection_method: "charge_automatically",
-        payment_behavior: "default_incomplete"
-    }))
+    if (user.subID) {
+        subscription = await stripe.subscriptions.retrieve(user.subID)
+    } else {
+        subscription = (await stripe.subscriptions.create({
+            customer,
+            items: [{ price: price_links[plan][billing] }],
+            collection_method: "charge_automatically",
+            payment_behavior: "default_incomplete"
+        }))
+    }
 
     if (!subscription) {
         res.status(500).end()
