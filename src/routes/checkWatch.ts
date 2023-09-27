@@ -9,13 +9,8 @@ const router = Router();
 
 router.post("/", async (req, res) => {
 
-  console.log(req.body)
-
   const email = req.body.email
   const movie = req.query.movie
-
-  console.log(movie)
-  console.log(email)
 
   const user = await watchlater.findOne({ email })
 
