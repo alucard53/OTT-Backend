@@ -13,7 +13,7 @@ import checkSub from "./routes/checkSub";
 import addWatch from "./routes/addWatch";
 import checkWatch from "./routes/checkWatch";
 import getWatchLater from "./routes/getWatchLater";
-
+import removeWatchLater from "./routes/removeWatchLater";
 configDotenv();
 
 async function main() {
@@ -43,6 +43,7 @@ async function main() {
   app.use("/addWatch", addWatch);
   app.use("/checkWatch", checkWatch);
   app.use("/getWatchLater", getWatchLater);
+  app.use("/", removeWatchLater);
 
   app.listen(6969, () => {
     console.log("App started in http://localhost:6969");
