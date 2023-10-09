@@ -14,9 +14,6 @@ import addWatch from "./routes/addWatch";
 import checkWatch from "./routes/checkWatch";
 import getWatchLater from "./routes/getWatchLater";
 
-import users from "./models/users";
-import watchlater from "./models/watchlater";
-
 configDotenv();
 
 async function main() {

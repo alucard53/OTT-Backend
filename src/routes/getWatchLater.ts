@@ -32,8 +32,3 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
-
-//front end me bas status check krna h ab
-//nhi response body read karna h waha h movies
-//ha pehle status check karo agar error wagera aye toh
-//fir await res.json() karke
