@@ -43,7 +43,7 @@ async function main() {
   app.use("/addWatch", addWatch);
   app.use("/checkWatch", checkWatch);
   app.use("/getWatchLater", getWatchLater);
-  app.use("/", removeWatchLater);
+  app.use("/removeWatchLater", removeWatchLater);
 
   app.listen(6969, () => {
     console.log("App started in http://localhost:6969");

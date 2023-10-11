@@ -11,7 +11,9 @@ router.delete("/", async (req, res) => {
   console.log(req.query);
 
   console.log(req.query.id);
+
   if (!process.env.JWT_KEY) {
+    console.log("JWT_KEY not found")
     res.status(500).end();
     return;
   }
@@ -32,6 +34,7 @@ router.delete("/", async (req, res) => {
     console.log("invalid token");
     return;
   }
+
   try {
     const data = await jwtDecrypt(token, secret);
 
@@ -44,8 +47,6 @@ router.delete("/", async (req, res) => {
       res.status(404).end();
       return;
     }
-
-    // console.log(user.movies);
 
     const movieId = req.query.id;
     console.log(movieId);
@@ -61,14 +62,6 @@ router.delete("/", async (req, res) => {
     );
 
     console.log(deleteMovie);
-    if (deleteMovie.modifiedCount === 1) {
-      res.json({ message: `Movie with ID ${movieId} deleted from the array.` });
-    } else {
-      res
-        .status(500)
-        .json({ error: `Failed to delete movie with ID ${movieId}.` });
-    }
-
     if (deleteMovie.acknowledged) {
       res.status(200).end();
     } else {
