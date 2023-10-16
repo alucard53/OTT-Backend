@@ -2,7 +2,7 @@ import { base64url, jwtDecrypt } from "jose"
 import { Router } from "express"
 import { configDotenv } from "dotenv"
 
-import watchlater from "../models/watchlater"
+import watchlater from "../../models/watchlater"
 
 configDotenv()
 

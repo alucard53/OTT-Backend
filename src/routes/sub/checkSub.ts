@@ -3,7 +3,7 @@ import { base64url, jwtDecrypt } from "jose";
 import { configDotenv } from "dotenv";
 import { Stripe } from "stripe";
 
-import users from "../models/users";
+import users from "../../models/users";
 
 configDotenv();
 const router = Router();
@@ -18,10 +18,11 @@ if (process.env.STRIPE_PK) {
 
 let secret: Uint8Array = new Uint8Array();
 
+if (process.env.JWT_KEY) {
+  secret = base64url.decode(process.env.JWT_KEY);
+}
+
 router.get("/", async (req, res) => {
-  if (process.env.JWT_KEY) {
-    secret = base64url.decode(process.env.JWT_KEY);
-  }
   const bearer = req.headers.authorization;
 
   if (!bearer) {
@@ -53,10 +54,10 @@ router.get("/", async (req, res) => {
     // }
 
     if (user !== null) {
-      if (user.substate === "Active") {
-        res.status(200).end();
-      } else {
+      if (user.substate === "None") {
         res.status(400).end();
+      } else {
+        res.status(200).end();
       }
     } else {
       console.log("user not found");

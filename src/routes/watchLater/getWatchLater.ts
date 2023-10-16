@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { configDotenv } from "dotenv";
 
-import watchlater from "../models/watchlater";
-import movies from "../models/movies";
+import watchlater from "../../models/watchlater";
+import movies from "../../models/movies";
 
 configDotenv();
 

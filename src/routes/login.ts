@@ -29,6 +29,7 @@ router.post("/", async (req, res) => {
     const token = await new EncryptJWT({ //creating new jwt and encrypting it
       email: user.email, //payload
       stripeID: user.stripeID, //payload
+      subID: user.subID,
     })
       .setProtectedHeader({ alg: "dir", enc: "A128CBC-HS256" }) //encryption algo to be used
       .setIssuedAt()
@@ -42,6 +43,7 @@ router.post("/", async (req, res) => {
       name: user.name,
       plan: user.plan,
       substate: user.substate,
+      startDate: user.startDate,
       token, //sending token on successful login
     });
   } else {

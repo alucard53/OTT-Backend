@@ -6,14 +6,18 @@ import mongoose from "mongoose";
 
 import register from "./routes/register";
 import login from "./routes/login";
-import pay from "./routes/pay";
+
+import pay from "./routes/sub/pay";
 import store from "./routes/store";
+
+import checkSub from "./routes/sub/checkSub";
+import cancelSub from "./routes/sub/cancelSub";
+
 import movies from "./routes/moviesData";
-import checkSub from "./routes/checkSub";
-import addWatch from "./routes/addWatch";
-import checkWatch from "./routes/checkWatch";
-import getWatchLater from "./routes/getWatchLater";
-import removeWatchLater from "./routes/removeWatchLater";
+import addWatch from "./routes/watchLater/addWatch";
+import checkWatch from "./routes/watchLater/checkWatch";
+import getWatchLater from "./routes/watchLater/getWatchLater";
+import removeWatchLater from "./routes/watchLater/removeWatchLater";
 configDotenv();
 
 async function main() {
@@ -22,10 +26,10 @@ async function main() {
       await mongoose.connect(process.env.MONGO_URI);
       console.log("Connected to DB");
     } else {
-      console.log("Failed to connect");
-      process.exit(1);
+      console.log("MONGO_URI not found")
     }
   } catch (e) {
+    console.log("Failed to connect");
     console.log(e);
   }
 
@@ -36,10 +40,13 @@ async function main() {
   //assign register route to handler
   app.use("/register", register);
   app.use("/login", login);
+  app.use("/checkSub", checkSub);
+
   app.use("/pay", pay);
   app.use("/store", store);
+  app.use("/cancelSub", cancelSub)
+
   app.use("/movies", movies);
-  app.use("/checkSub", checkSub);
   app.use("/addWatch", addWatch);
   app.use("/checkWatch", checkWatch);
   app.use("/getWatchLater", getWatchLater);

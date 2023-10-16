@@ -3,7 +3,7 @@
 import { Router } from "express"
 import { Stripe } from "stripe"
 import { configDotenv } from "dotenv";
-import users from "../models/users"
+import users from "../../models/users"
 
 configDotenv()
 
