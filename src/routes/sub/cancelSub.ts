@@ -30,8 +30,10 @@ if (process.env.JWT_KEY) {
 
 router.get("/", async (req, res) => {
 
+  // get header
   const token = req.headers.authorization?.split(" ")[1]
 
+  // token not present
   if (!token) {
     console.log("token not found")
     res.status(400).end()
@@ -40,6 +42,7 @@ router.get("/", async (req, res) => {
 
   let data: JWTDecryptResult
   try {
+    // decrypt jwt
     data = await jwtDecrypt(token, secret)
   } catch (e) {
     console.log("Invalid jwt", e)
@@ -47,7 +50,7 @@ router.get("/", async (req, res) => {
     return
   }
 
-  try {
+  try { // get user from DB
     const user = await users.findOne({ email: data.payload.email })
     if (!user || !user.subID) {
       console.log("user not found")
@@ -55,6 +58,7 @@ router.get("/", async (req, res) => {
       return
     }
 
+    // retrieve subscription to check if active
     const subscription = await stripe.subscriptions.retrieve(user.subID)
 
     if (subscription.status !== "active") {
@@ -63,10 +67,12 @@ router.get("/", async (req, res) => {
       return
     }
 
+    // cancel sub
     const cancel_res = await stripe.subscriptions.cancel(user.subID)
 
     if (cancel_res.status === "canceled") {
 
+      // update db (don't really need, remove later)
       const db_res = await users.updateOne({ email: data.payload.email }, {
         $set: {
           substate: "Inactive",
