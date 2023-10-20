@@ -1,80 +1,61 @@
-import { base64url, jwtDecrypt } from "jose"
+import getPayload from "../../getPayload"
 import { Router } from "express"
-import { configDotenv } from "dotenv"
 
 import watchlater from "../../models/watchlater"
-
-configDotenv()
 
 const router = Router()
 
 router.post("/", async (req, res) => {
-  if (!process.env.JWT_KEY) {
-    res.status(500).end()
-    return
-  }
 
-  const secret = base64url.decode(process.env.JWT_KEY)
+	//TODO validateJwt
+	const data = await getPayload(req.headers.authorization)
 
-  const bearer = req.headers.authorization
+	if (!data) {
+		res.status(400).end()
+		return
+	}
 
-  if (!bearer) {
-    res.status(400).end()
-    console.log("no auth header found")
-    return
-  }
+	//Get email from jwt
+	const email = data.payload.email
+	const movie = req.query.movie
 
-  const [, token] = bearer.split(" ")
+	if (!movie) {
+		console.log("movie not found in route query")
+		res.status(400).end()
+		return
+	}
 
-  if (!token) {
-    res.status(400).end()
-    console.log("invalid token")
-    return
-  }
+	//get current watchlater list
+	try {
+		const user = await watchlater.findOne({ email })
 
-  //Get email from jwt
-  try {
-    const data = await jwtDecrypt(token, secret)
-    //TODO validateJwt
-    const email = data.payload.email
-    const movie = req.query.movie
+		if (!user) {
+			console.log("user not found")
+			res.status(404).end()
+			return
+		}
 
-    if (!movie) {
-      console.log("movie not found in route query")
-      res.status(400).end()
-      return
-    }
+		console.log(user.movies)
 
-    //get current watchlater list
-    const user = await watchlater.findOne({ email })
+		//update watchlater list by appending movie in request to old list
+		const update = await watchlater.updateOne({ email }, {
+			$set: {
+				movies: [...user.movies, movie]
+			}
+		})
 
-    if (!user) {
-      console.log("user not found")
-      res.status(404).end()
-      return
-    }
+		if (update.acknowledged) {
+			res.status(200).end()
+		} else {
+			console.log("Failed to update db")
+			res.status(500).end()
+		}
 
-    console.log(user.movies)
-
-    //update watchlater list by appending movie in request to old list
-    const update = await watchlater.updateOne({ email }, {
-      $set: {
-        movies: [...user.movies, movie]
-      }
-    })
-
-    if (update.acknowledged) {
-      res.status(200).end()
-    } else {
-      console.log("Failed to update db")
-      res.status(500).end()
-    }
-
-  } catch (e) {
-    console.log(e)
-    res.status(400).end()
-    return
-  }
+	} catch (e) {
+		console.log(e)
+		res.status(400).end()
+		return
+	}
 })
 
 export default router

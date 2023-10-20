@@ -8,6 +8,7 @@ const schema = new Schema(
     genre: String,
     director: String,
     desc: String,
+    watchLater: Boolean,
   },
   {
     collection: "Movies",

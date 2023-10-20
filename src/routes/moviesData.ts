@@ -1,11 +1,23 @@
 import { Router } from "express";
 import movies from "../models/movies";
+import watchlater from "../models/watchlater";
 
 const router = Router();
 
-router.get("/", async (_, res) => {
+router.post("/", async (req, res) => {
 
-  let mvs = await movies.find();
+  const email = req.body.email
+
+  const mvs = await movies.find();
+
+  if (email && email !== "") {
+    const wl = await watchlater.findOne({ email })
+    for (const i in mvs) {
+      if (wl?.movies.includes(mvs[i].id)) {
+        mvs[i].watchLater = true
+      }
+    }
+  }
 
   if (!mvs) {
     res.status(500).end();
@@ -13,8 +25,6 @@ router.get("/", async (_, res) => {
   } else {
     res.status(200).json(mvs);
   }
-
-  res.end();
 });
 
 export default router;

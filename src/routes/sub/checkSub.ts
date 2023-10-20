@@ -1,74 +1,58 @@
 import { Router } from "express";
-import { base64url, jwtDecrypt } from "jose";
-import { configDotenv } from "dotenv";
+import getPayload from "../../getPayload";
 import { Stripe } from "stripe";
 
 import users from "../../models/users";
 
-configDotenv();
 const router = Router();
 
 let stripe: Stripe;
 
 if (process.env.STRIPE_PK) {
-  stripe = new Stripe(process.env.STRIPE_PK, {
-    apiVersion: "2023-08-16",
-  });
+	stripe = new Stripe(process.env.STRIPE_PK, {
+		apiVersion: "2023-08-16",
+	});
+} else {
+	console.log("stripe pk not found")
+	process.exit(1)
 }
 
-let secret: Uint8Array = new Uint8Array();
-
-if (process.env.JWT_KEY) {
-  secret = base64url.decode(process.env.JWT_KEY);
-}
 
 router.get("/", async (req, res) => {
-  const bearer = req.headers.authorization;
+	const data = await getPayload(req.headers.authorization);
 
-  if (!bearer) {
-    res.status(401).end();
-    console.log("not authenticated");
-    return;
-  }
+	if (!data) {
+		res.status(400).end()
+		return
+	}
 
-  const [, token] = bearer.toString().split(" ");
+	const email = data.payload.email;
 
-  if (!token) {
-    res.status(401).end();
-    console.log("invalid token");
-    return;
-  }
+	try {
+		const user = await users.findOne({ email });
 
-  try {
-    const data = await jwtDecrypt(token, secret);
-    console.log(data);
-    //TODO validateJwt
-    const email = data.payload.email;
+		console.log(user);
 
-    const user = await users.findOne({ email });
+		// if (user?.subID) {
+		//   console.log(await stripe.subscriptions.retrieve(user.subID))
+		// }
 
-    console.log(user);
-
-    // if (user?.subID) {
-    //   console.log(await stripe.subscriptions.retrieve(user.subID))
-    // }
-
-    if (user !== null) {
-      if (user.substate === "None") {
-        res.status(400).end();
-      } else {
-        res.status(200).end();
-      }
-    } else {
-      console.log("user not found");
-      res.status(404).end();
-    }
-  } catch (e) {
-    console.log(e);
-    console.log("bad token");
-    res.status(401).end();
-    return;
-  }
+		if (user !== null) {
+			if (user.substate === "None") {
+				res.status(400).end();
+			} else {
+				res.status(200).end();
+			}
+		} else {
+			console.log("user not found");
+			res.status(404).end();
+		}
+	} catch (e) {
+		console.log(e);
+		console.log("bad token");
+		res.status(401).end();
+		return;
+	}
 });
 
 export default router;
