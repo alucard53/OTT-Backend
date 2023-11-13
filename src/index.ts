@@ -18,6 +18,7 @@ import addWatch from "./routes/watchLater/addWatch";
 import checkWatch from "./routes/watchLater/checkWatch";
 import getWatch from "./routes/watchLater/getWatch";
 import removeWatch from "./routes/watchLater/removeWatch";
+
 configDotenv();
 
 async function main() {

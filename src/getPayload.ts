@@ -11,7 +11,7 @@ if (!process.env.JWT_KEY) {
     secret = base64url.decode(process.env.JWT_KEY)
 }
 
-export default async function (header: String | undefined): Promise<JWTDecryptResult | undefined> {
+export default async function(header: String | undefined): Promise<JWTDecryptResult | undefined> {
     const token = header?.split(" ")[1]
 
     // token not present

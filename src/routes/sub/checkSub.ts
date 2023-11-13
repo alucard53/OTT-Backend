@@ -9,50 +9,61 @@ const router = Router();
 let stripe: Stripe;
 
 if (process.env.STRIPE_PK) {
-	stripe = new Stripe(process.env.STRIPE_PK, {
-		apiVersion: "2023-08-16",
-	});
+    stripe = new Stripe(process.env.STRIPE_PK, {
+        apiVersion: "2023-08-16",
+    });
 } else {
-	console.log("stripe pk not found")
-	process.exit(1)
+    console.log("stripe pk not found")
+    process.exit(1)
 }
 
 
 router.get("/", async (req, res) => {
-	const data = await getPayload(req.headers.authorization);
+    const data = await getPayload(req.headers.authorization);
 
-	if (!data) {
-		res.status(400).end()
-		return
-	}
+    if (!data) {
+        res.status(400).end()
+        return
+    }
 
-	const email = data.payload.email;
+    const email = data.payload.email;
 
-	try {
-		const user = await users.findOne({ email });
+    try {
+        const user = await users.findOne({ email });
 
-		console.log(user);
+        console.log(user);
 
-		// if (user?.subID) {
-		//   console.log(await stripe.subscriptions.retrieve(user.subID))
-		// }
+        // if (user?.subID) {
+        //   console.log(await stripe.subscriptions.retrieve(user.subID))
+        // }
 
-		if (user !== null) {
-			if (user.substate === "None") {
-				res.status(400).end();
-			} else {
-				res.status(200).end();
-			}
-		} else {
-			console.log("user not found");
-			res.status(404).end();
-		}
-	} catch (e) {
-		console.log(e);
-		console.log("bad token");
-		res.status(401).end();
-		return;
-	}
+        if (user !== null) {
+            console.log(user.substate)
+            switch (user.substate) {
+                case "None":
+                    res.status(400).end();
+                    break;
+                case "Incomplete":
+                    res.status(406).end();
+                    break;
+                default:
+                    res.status(200).end();
+            }
+            if (user.substate === "None") {
+                res.status(400).end();
+            } else {
+                res.status(200).end();
+            }
+        } else {
+            console.log("user not found");
+            res.status(404).end();
+        }
+    } catch (e) {
+        console.log(e);
+        console.log("bad token");
+        res.status(401).end();
+        return;
+    }
 });
 
 export default router;
