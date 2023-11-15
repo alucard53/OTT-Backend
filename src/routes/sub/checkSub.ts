@@ -37,22 +37,19 @@ router.get("/", async (req, res) => {
         //   console.log(await stripe.subscriptions.retrieve(user.subID))
         // }
 
-        if (user !== null) {
-            console.log(user.substate)
-            switch (user.substate) {
-                case "None":
-                    res.status(400).end();
-                    break;
-                case "Incomplete":
-                    res.status(406).end();
-                    break;
-                default:
-                    res.status(200).end();
+        if (user) {
+            if (!user.subID) {
+                res.status(400).end()
+                return
             }
-            if (user.substate === "None") {
-                res.status(400).end();
+            const subscription = await stripe.subscriptions.retrieve(user.subID)
+
+            console.log(subscription.status)
+
+            if (subscription.status === "incomplete" || subscription.status === "past_due") {
+                res.status(206).end();
             } else {
-                res.status(200).end();
+                res.status(200).end()
             }
         } else {
             console.log("user not found");

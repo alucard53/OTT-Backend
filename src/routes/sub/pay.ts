@@ -70,19 +70,20 @@ router.post("/", async (req, res) => {
         let subscription: Stripe.Response<Stripe.Subscription>
         //create a new subscription in stripe or retrieve old subscription
 
-        console.log(user.subID)
+        if (user.subID) { // for exising sub ID
 
-        if (user.subID) {
             subscription = await stripe.subscriptions.retrieve(user.subID)
-            if (subscription.status === "canceled") {
+
+            if (subscription.status === "canceled") { // for cancelled subscription, create new subscription object in stripe for renewal
                 subscription = (await stripe.subscriptions.create({
                     customer,
                     items: [{ price: price_links[plan][billing] }],
                     collection_method: "charge_automatically",
                     payment_behavior: "default_incomplete"
                 }))
-            } else if (subscription.status === "past_due" || subscription.status === "active") {
-                subscription = await stripe.subscriptions.update(user.subID, {
+
+            } else if (subscription.status === "active") {
+                subscription = await stripe.subscriptions.update(user.subID, { // to alter plan, delete previous subscription item from subscription, and add new one
                     items: [
                         {
                             id: subscription.items.data[0].id,
@@ -90,65 +91,79 @@ router.post("/", async (req, res) => {
                         },
                         {
                             price: price_links[plan][billing]
-                        }
-                    ]
+                        },
+                    ],
+                    collection_method: "charge_automatically",
+                    payment_behavior: "default_incomplete"
                 })
+
             }
         } else {
-            subscription = (await stripe.subscriptions.create({
+            subscription = (await stripe.subscriptions.create({ // for new subscription
                 customer,
                 items: [{ price: price_links[plan][billing] }],
                 collection_method: "charge_automatically",
                 payment_behavior: "default_incomplete"
             }))
+
         }
+
+        // if payment is incomplete/past_due above block should be skipped, and latest invoice can be generated without extra steps
+
+        let substate = "Incomplete";
 
         console.log(subscription.status)
 
+        if (subscription.status !== "active") {
 
-        //Invoice can be an invoice object | string | undefined, so convert to string
-        const invoice = subscription.latest_invoice?.toString()
+            //Invoice can be an invoice object | string | undefined, so convert to string
+            const invoice = subscription.latest_invoice?.toString()
 
-        if (!invoice) {
-            res.status(500).end()
-            return
+            if (!invoice) {
+                res.status(500).end()
+                return
+            }
+
+            //retrieve payment intent object to get client secret
+            const paymentIntentId = (
+                await
+                    stripe.
+                        invoices.
+                        retrieve(invoice))
+                .payment_intent
+
+            if (!paymentIntentId) {
+                res.status(500).end()
+                return
+            }
+
+            const paymentIntent = await stripe
+                .paymentIntents
+                .retrieve(
+                    paymentIntentId.toString()
+                )
+
+            if (!paymentIntent) {
+                res.status(500).end()
+                return
+            }
+
+            //send client secret to frontend
+            res.status(206).json({
+                secret: paymentIntent.client_secret, sub_id: subscription.id
+            })
+
+        } else {
+            substate = "Active"
+            res.status(200).end()
         }
-
-        //retrieve payment intent object to get client secret
-        const paymentIntentId = (
-            await
-                stripe.
-                    invoices.
-                    retrieve(invoice))
-            .payment_intent
-
-        if (!paymentIntentId) {
-            res.status(500).end()
-            return
-        }
-
-        const paymentIntent = await stripe
-            .paymentIntents
-            .retrieve(
-                paymentIntentId.toString()
-            )
-
-        if (!paymentIntent) {
-            res.status(500).end()
-            return
-        }
-
-        //send client secret to frontend
-        res.status(200).json({
-            secret: paymentIntent.client_secret, sub_id: subscription.id
-        })
 
         const update = await users.updateOne(
             { email },
             {
                 $set: {
                     subID: subscription.id,
-                    substate: "Incomplete",
+                    substate,
                     plan,
                     billing
                 }
