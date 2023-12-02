@@ -33,10 +33,6 @@ router.get("/", async (req, res) => {
 
         console.log(user);
 
-        // if (user?.subID) {
-        //   console.log(await stripe.subscriptions.retrieve(user.subID))
-        // }
-
         if (user) {
             if (!user.subID) {
                 res.status(400).end()

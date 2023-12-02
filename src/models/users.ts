@@ -17,7 +17,7 @@ const schema = new Schema({
   billing: Number,
   stripeID: { type: String, require: true },
   subID: { type: String },
-  startDate: Date,
+  endDate: Date,
 });
 
 export default model("Users", schema, "Users")

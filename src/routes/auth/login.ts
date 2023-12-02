@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { base64url, EncryptJWT } from "jose";
 
-import users from "../models/users";
+import users from "../../models/users";
 
 const router = Router();
 
@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
       name: user.name,
       plan: user.plan,
       substate: user.substate,
-      startDate: user.startDate,
+      startDate: user.endDate,
       token, //sending token on successful login
     });
   } else {

@@ -74,29 +74,32 @@ router.post("/", async (req, res) => {
 
             subscription = await stripe.subscriptions.retrieve(user.subID)
 
-            if (subscription.status === "canceled") { // for cancelled subscription, create new subscription object in stripe for renewal
-                subscription = (await stripe.subscriptions.create({
-                    customer,
-                    items: [{ price: price_links[plan][billing] }],
-                    collection_method: "charge_automatically",
-                    payment_behavior: "default_incomplete"
-                }))
-
-            } else if (subscription.status === "active") {
-                subscription = await stripe.subscriptions.update(user.subID, { // to alter plan, delete previous subscription item from subscription, and add new one
-                    items: [
-                        {
-                            id: subscription.items.data[0].id,
-                            deleted: true
-                        },
-                        {
-                            price: price_links[plan][billing]
-                        },
-                    ],
-                    collection_method: "charge_automatically",
-                    payment_behavior: "default_incomplete"
-                })
-
+            switch (subscription.status) {
+                case "canceled": // for cancelled subscription, create new subscription object in stripe for renewal
+                    subscription = (await stripe.subscriptions.create({
+                        customer,
+                        items: [{ price: price_links[plan][billing] }],
+                        collection_method: "charge_automatically",
+                        payment_behavior: "default_incomplete"
+                    }))
+                    break;
+                case "active":
+                    subscription = await stripe.subscriptions.update(user.subID, { // to alter plan, delete previous subscription item from subscription, and add new one
+                        items: [
+                            {
+                                id: subscription.items.data[0].id,
+                                deleted: true
+                            },
+                            {
+                                price: price_links[plan][billing]
+                            },
+                        ],
+                        collection_method: "charge_automatically",
+                        payment_behavior: "default_incomplete"
+                    })
+                    break;
+                default:
+                    console.log("Unpaid sub, using previous intent to get secret") // shouldddd also cover overdue subs
             }
         } else {
             subscription = (await stripe.subscriptions.create({ // for new subscription
@@ -114,7 +117,7 @@ router.post("/", async (req, res) => {
 
         console.log(subscription.status)
 
-        if (subscription.status !== "active") {
+        if (subscription.status !== "active") { // this check is for when the cost for altering an ongoing sub is covered automatically by stripe
 
             //Invoice can be an invoice object | string | undefined, so convert to string
             const invoice = subscription.latest_invoice?.toString()
@@ -155,8 +158,12 @@ router.post("/", async (req, res) => {
 
         } else {
             substate = "Active"
-            res.status(200).end()
+            let date = new Date(0)
+            date.setUTCSeconds(subscription.current_period_end)
+            res.status(200).json({ date })
         }
+
+        console.log(subscription.current_period_end)
 
         const update = await users.updateOne(
             { email },
@@ -165,7 +172,7 @@ router.post("/", async (req, res) => {
                     subID: subscription.id,
                     substate,
                     plan,
-                    billing
+                    billing,
                 }
             }
         )

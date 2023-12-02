@@ -10,6 +10,8 @@ router.post("/", async (req, res) => {
 
   const mvs = await movies.find();
 
+  console.log(mvs)
+
   if (email && email !== "") {
     const wl = await watchlater.findOne({ email })
     for (const i in mvs) {

@@ -4,16 +4,18 @@ import { configDotenv } from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 
-import register from "./routes/register";
-import login from "./routes/login";
+import register from "./routes/auth/register";
+import login from "./routes/auth/login";
 
 import pay from "./routes/sub/pay";
-import store from "./routes/store";
+import store from "./routes/auth/store";
 
 import checkSub from "./routes/sub/checkSub";
 import cancelSub from "./routes/sub/cancelSub";
 
 import movies from "./routes/moviesData";
+import stream from "./routes/stream"
+
 import addWatch from "./routes/watchLater/addWatch";
 import checkWatch from "./routes/watchLater/checkWatch";
 import getWatch from "./routes/watchLater/getWatch";
@@ -41,13 +43,16 @@ async function main() {
     //assign register route to handler
     app.use("/register", register);
     app.use("/login", login);
-    app.use("/checkSub", checkSub);
+    app.use("/store", store);
 
     app.use("/pay", pay);
-    app.use("/store", store);
     app.use("/cancelSub", cancelSub)
+    app.use("/checkSub", checkSub);
 
     app.use("/movies", movies);
+    app.use("/stream", stream);
+
+
     app.use("/addWatch", addWatch);
     app.use("/checkWatch", checkWatch);
     app.use("/getWatch", getWatch);

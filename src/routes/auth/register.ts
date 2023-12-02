@@ -4,8 +4,8 @@ import { Router } from "express";
 import { Stripe } from "stripe";
 import { configDotenv } from "dotenv";
 
-import users from "../models/users";
-import watchlater from "../models/watchlater";
+import users from "../../models/users";
+import watchlater from "../../models/watchlater";
 
 //Intialize config to access variables from .env file
 
@@ -37,6 +37,7 @@ router.post("/", async (req, res) => {
 		res.status(400).end();
 		return;
 	}
+	console.log("db customer created")
 
 	console.log("Waiting to create stripe customer")
 
