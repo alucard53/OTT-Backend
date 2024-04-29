@@ -44,6 +44,8 @@ router.get("/:id", async (req, res) => {
         }
 
         res.status(200).json(movie)
+    } else {
+        res.status(401).end()
     }
 })
 
