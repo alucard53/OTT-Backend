@@ -1,8 +1,8 @@
 import { Router } from "express";
-import getPayload from "../../getPayload";
 import { Stripe } from "stripe";
 
 import users from "../../models/users";
+import JWTAuth from "../../middleware/auth";
 
 const router = Router();
 
@@ -18,15 +18,8 @@ if (process.env.STRIPE_PK) {
 }
 
 
-router.get("/", async (req, res) => {
-    const data = await getPayload(req.headers.authorization);
-
-    if (!data) {
-        res.status(400).end()
-        return
-    }
-
-    const email = data.payload.email;
+router.get("/", JWTAuth, async (_, res) => {
+    const email = res.locals.email;
 
     try {
         const user = await users.findOne({ email });

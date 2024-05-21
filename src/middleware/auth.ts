@@ -26,7 +26,8 @@ export default async function JWTAuth(req: Request, res: Response, next: NextFun
     }
 
     try {
-        await jwtDecrypt(token, secret)
+        const data = await jwtDecrypt(token, secret)
+        res.locals.email = data.payload.email
         next()
     } catch (e) {
         console.log("JWT auth failed: ", e)

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import getPayload from "../../getPayload";
 import { configDotenv } from "dotenv";
 import { Stripe } from "stripe";
 
 import users from "../../models/users";
+import JWTAuth from "../../middleware/auth";
 
 
 configDotenv()
@@ -20,20 +20,11 @@ if (process.env.STRIPE_PK) {
     process.exit(1);
 }
 
-let secret: Uint8Array;
-
-router.get("/", async (req, res) => {
-
-    // get header
-    const data = await getPayload(req.headers.authorization)
-
-    if (!data) {
-        res.status(400).end()
-        return
-    }
+router.get("/", JWTAuth, async (req, res) => {
+    const email = res.locals.email
 
     try { // get user from DB
-        const user = await users.findOne({ email: data.payload.email })
+        const user = await users.findOne({ email })
         if (!user || !user.subID) {
             console.log("user not found")
             res.status(400).end()
@@ -55,7 +46,7 @@ router.get("/", async (req, res) => {
         if (cancel_res.status === "canceled") {
 
             // update db (don't really need, remove later)
-            const db_res = await users.updateOne({ email: data.payload.email }, {
+            const db_res = await users.updateOne({ email }, {
                 $set: {
                     substate: "Inactive",
                 }
