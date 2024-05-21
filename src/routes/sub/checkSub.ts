@@ -34,11 +34,7 @@ router.get("/", async (req, res) => {
         console.log(user);
 
         if (user) {
-            if (!user.subID) {
-                res.status(400).end()
-                return
-            }
-            const subscription = await stripe.subscriptions.retrieve(user.subID)
+            const subscription = await stripe.subscriptions.retrieve(user.subID!)
 
             console.log(subscription.status)
 

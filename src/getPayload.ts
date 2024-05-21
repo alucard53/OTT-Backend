@@ -20,7 +20,6 @@ export default async function(header: String | undefined): Promise<JWTDecryptRes
         return undefined
     }
 
-    let data: JWTDecryptResult
     try {
         // decrypt jwt
         return await jwtDecrypt(token, secret)

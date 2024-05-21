@@ -12,6 +12,7 @@ import store from "./routes/auth/store";
 
 import checkSub from "./routes/sub/checkSub";
 import cancelSub from "./routes/sub/cancelSub";
+import getSub from "./routes/sub/getSub"
 
 import movies from "./routes/moviesData";
 import stream from "./routes/stream"
@@ -48,6 +49,7 @@ async function main() {
     app.use("/pay", pay);
     app.use("/cancelSub", cancelSub)
     app.use("/checkSub", checkSub);
+    app.use("/getSub", getSub)
 
     app.use("/movies", movies);
     app.use("/stream", stream);

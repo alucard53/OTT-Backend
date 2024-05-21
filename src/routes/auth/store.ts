@@ -4,6 +4,7 @@ import { Router } from "express";
 import { Stripe } from "stripe"
 
 import users from "../../models/users"
+import JWTAuth from "../../middleware/auth";
 
 let router = Router()
 
@@ -18,7 +19,7 @@ if (process.env.STRIPE_PK) {
     process.exit(1)
 }
 
-router.post("/", async (req, res) => {
+router.post("/", JWTAuth, async (req, res) => {
     //Read email to find user in DB, plan id, and billing id to store in DB
     const { email } = req.body
 

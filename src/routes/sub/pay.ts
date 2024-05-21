@@ -4,6 +4,7 @@ import { Router } from "express"
 import { Stripe } from "stripe"
 import { configDotenv } from "dotenv";
 import users from "../../models/users"
+import JWTAuth from "../../middleware/auth";
 
 configDotenv()
 
@@ -48,7 +49,7 @@ if (process.env.STRIPE_PK) {
 
 }
 
-router.post("/", async (req, res) => {
+router.post("/", JWTAuth, async (req, res) => {
     //Read plan index, billing index, and stripe customer id from request body
     const { plan, billing, email } = req.body
 
